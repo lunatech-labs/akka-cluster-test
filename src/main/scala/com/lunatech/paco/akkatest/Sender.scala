@@ -14,13 +14,21 @@ object Sender extends App {
 
     println("Enter a message to send, or “q” to quit.")
 
-    val connector = system.actorOf(FromConfig.props(Props[Connector]), "connector")
+//    val kafkaRouter = system.actorOf(FromConfig.props(Props[KafkaClient]), "kafka-client")
+    val connectorRouter = system.actorOf(FromConfig.props(Props[Connector]), "connector")
+    val connector = system.actorSelection("/user/connector")
 
-    var message: String = readLine("> ")
+    def rl: String = {
+      readLine(Console.MAGENTA + "> " + Console.RESET)
+    }
+
+    var message: String = rl
 
     while (message != "q") {
-      connector ! MqttMsg(message)
-      message = readLine("> ")
+      for (i <- 1 to 20) {
+        connector ! MqttMsg(s"$message-$i")
+      }
+      message = rl
     }
 
     println(Console.MAGENTA + "Terminating actor system" + Console.RESET)
